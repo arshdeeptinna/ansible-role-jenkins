@@ -32,6 +32,11 @@
 - name: Ensure Jenkins is started and runs on startup.
   service: name=jenkins state=started enabled=yes
 
+- name: Add shell for jenkins user
+  user:
+    name: "{{jenkins_process_user}}"
+    shell: "/bin/bash"
+
 - name: Switch to java version 8
   alternatives:
     name: java
@@ -40,6 +45,9 @@
 - name: Fetch Java version
   shell: java -version 2>&1 | grep version | awk '{print $3}' | sed 's/"//g'
   register: java_version
+
+- name: Print java version
+  debug: msg="{{java_version.stdout}}"
 
 - name: Assert java version is 1.8 or greater
   assert:
