@@ -18,24 +18,6 @@
     jenkins_pkg_url: "{{ __jenkins_pkg_url }}"
   when: jenkins_pkg_url is not defined
 
-# Setup/install tasks.
-- include: setup-RedHat.yml
-  when: ansible_os_family == 'RedHat'
-
-- include: setup-Debian.yml
-  when: ansible_os_family == 'Debian'
-
-# Configure Jenkins init settings.
-- include: settings.yml
-
-# Make sure Jenkins starts, then configure Jenkins.
-- name: Ensure Jenkins is started and runs on startup.
-  service: name=jenkins state=started enabled=yes
-
-- name: Add shell for jenkins user
-  user:
-    name: "{{jenkins_process_user}}"
-    shell: "/bin/bash"
 
 - name: Switch to java version 8
   alternatives:
@@ -53,6 +35,20 @@
   assert:
     that: 
       - java_version.stdout | version_compare('1.8', '>=') 
+
+# Setup/install tasks.
+- include: setup-RedHat.yml
+  when: ansible_os_family == 'RedHat'
+
+- include: setup-Debian.yml
+  when: ansible_os_family == 'Debian'
+
+# Configure Jenkins init settings.
+- include: settings.yml
+
+# Make sure Jenkins starts, then configure Jenkins.
+- name: Ensure Jenkins is started and runs on startup.
+  service: name=jenkins state=started enabled=yes
 
 - name: Wait for Jenkins to start up before proceeding.
   shell: "curl -D - --silent --max-time 5 http://{{ jenkins_hostname }}:{{ jenkins_http_port }}{{ jenkins_url_prefix }}/cli/"
